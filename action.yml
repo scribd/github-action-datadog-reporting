@@ -1,0 +1,31 @@
+name: 'Datadog Workflow Metrics'
+description: 'Reports data on the workflow to datadog'
+inputs:
+  datadog-metric-prefix:
+    description: 'A prefix for your datadog metrics'
+    required: true
+    default: 'github.ci'
+  metrics-type:
+    description: '"velocity" or "job_metrics" depending on the desired metrics to be collected'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Install required libraries for gems
+      shell: bash
+      run: |
+        gem install octokit
+        gem install dogapi
+    - name: Export extra data
+      shell: bash
+      run: |
+        if [ "${{ inputs.metrics-type }}" == "velocity" ]; then
+          echo "PR_NUMBER=${{github.event.pull_request.number}}" >> $GITHUB_ENV
+          echo "ACTION=${{github.event.action}}" >> $GITHUB_ENV
+        else
+          echo "ACTION=${{ inputs.metrics-type }}" >> $GITHUB_ENV
+        fi
+    - id: metric
+      shell: bash
+      run: |
+        ruby ./github-action-datadog-reporting/report_github_metrics.rb ${{github.repository}} ${{github.run_id}} ${{ inputs.datadog-metric-prefix }}
