@@ -11,6 +11,35 @@ One of the features of this action is to report metrics on job duration and work
 - Job duration, 1 metric submitted per job in a workflow that uses the action
 - Workflow duration, 1 metric submitted per workflow that uses the action.
 
+The following represents example metrics submitted for job duration and workflow duration
+
+Metric name: `<prefix>.job_duration`
+
+Metric value: `151.0`
+
+tags: 
+```
+{
+  workflow: "My workflow name",
+  project: "scribd/my_repository",
+  status: "success",
+  name: "My-job-name",
+}
+```
+
+Metric name: `<prefix>.workflow_duration`
+
+Metric value: `1223.0`
+
+tags: 
+```
+{
+  workflow: "My workflow name",
+  project: "scribd/my_repository",
+  status: "success",
+}
+```
+
 ### Capture Development Velocity Metrics
 
 This action also provides the capability to establish a separate workflow that tracks useful developer velocity metrics. Currently the metrics tracked are 
@@ -18,6 +47,32 @@ This action also provides the capability to establish a separate workflow that t
 - Time to merge per pull request (Time difference between PR open and merge), reported on PR merged.
 - Lines changed per pull request, reported on PR merged.
 - Time to open a pull request (Time difference between first commit and PR open), reported on PR open.
+
+The following represents example metrics for time to merge, lines changed and time to open
+
+Metric name: `<prefix>.time_to_merge`
+
+Metric value: `897.0`
+
+tags: `{project: "scribd/my_repository"}`
+
+
+
+Metric name: `<prefix>.lines_changed`
+
+Metric value: `123.0`
+
+tags: `{project: "scribd/my_repository"}`
+
+
+
+Metric name: `<prefix>.time_to_open`
+
+Metric value: `389.0`
+
+tags: `{project: "scribd/my_repository"}`
+
+
 
 ## Inputs
 
@@ -29,6 +84,20 @@ A prefix for all of the datadog metrics. If multiple projects in your organizati
 
 Internal configuration for the action. `job_metrics` should be passed for capturing job_duration and workflow durations, while `velocity` should be passed when used in a `Velocity Workflow` as seen below.
 
+## Enviornment Variables
+
+The following two secrets are required to be added to your GitHub settings for access to Datadog and GitHub during the workflow run.
+
+### OCTOKIT_TOKEN
+
+This token allows the action to request information about the workflow run from GitHub and enables calculating the relevant metrics. You can learn how to generate a personal access token (PAT) here: https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
+
+The only permission required for the PAT is `repo`
+
+### DATADOG_TOKEN
+
+This token allows the action to submit the metrics to datadog. You can learn how to generate an API token from Datadog here: https://docs.datadoghq.com/account_management/api-app-keys/
+
 ## Examples
 
 ### Capture GitHub Action Job and Workflow metrics
@@ -37,12 +106,10 @@ To capture job performance of an existing workflow, this action *must* run after
 
 The metrics that are captured for GitHub Action jobs are:
 
-- {datadog-metric-prefix}.job_duration
-  - Tagged with job status, job name, workflow name and branch (`master` or `other`).
-- {datadog-metric-prefix}.workflow_duration
-  - Tagged with workflow status, workflow name, and branch (`master` or `other`)
-
-Note that you will need to provide your own Datadog API key and GitHub token for Octokit.
+- `{datadog-metric-prefix}.job_duration`
+  - Tagged with job status, job name, workflow name and repository.
+- `{datadog-metric-prefix}.workflow_duration`
+  - Tagged with workflow status, workflow name, and repository.
 
 ```
 metrics:
@@ -67,11 +134,9 @@ metrics:
 
 The following example can be placed into a workflow file to report the Development Velocity metrics:
 
-- {datadog-metric-prefix}.time_to_open
-- {datadog-metric-prefix}.time_to_merge
-- {datadog-metric-prefix}.lines_changed
-
-Note that you will need to provide your own Datadog API key and GitHub token for Octokit.
+- `{datadog-metric-prefix}.time_to_open`
+- `{datadog-metric-prefix}.time_to_merge`
+- `{datadog-metric-prefix}.lines_changed`
 
 ```
 name: Velocity Workflow
