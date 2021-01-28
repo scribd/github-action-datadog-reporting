@@ -47,8 +47,8 @@ def collect_merged_data(github_client, repo)
   time_to_merge = pr_info["merged_at"] - pr_info["created_at"]
   diff_size = pr_info["additions"] + pr_info["deletions"]
   [
-    ["time_to_merge", time_to_merge, []],
-    ["lines_changed", diff_size, []]
+    ["time_to_merge", time_to_merge, ["project:#{repo}"]],
+    ["lines_changed", diff_size, ["project:#{repo}"]]
   ]
 end
 
@@ -56,13 +56,12 @@ def collect_opened_data(github_client, repo)
   pr_info = github_client.pull_request(repo, ENV['PR_NUMBER'])
   commits = github_client.get(pr_info["commits_url"])
   time_to_open = pr_info["created_at"] - commits.first["commit"]["committer"]["date"]
-  [["time_to_open", time_to_open, []]]
+  [["time_to_open", time_to_open, ["project:#{repo}"]]]
 end
 
 def collect_duration_data(github_client, repo, run)
   workflow = github_client.get("repos/#{repo}/actions/runs/#{run}")
-  branch = workflow["head_branch"].downcase == "master" ? "master" : "other"
-  tags = ["branch:#{branch}", "workflow:#{workflow["name"]}"]
+  tags = ["workflow:#{workflow["name"]}", "project:#{repo}"]
   jobs = prior_jobs(github_client.get(workflow["jobs_url"])["jobs"])
   collect_metrics(jobs, tags)
 end
