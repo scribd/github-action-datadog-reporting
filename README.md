@@ -12,13 +12,10 @@ One of the features of this action is to report metrics on job duration and work
 - Workflow duration, 1 metric submitted per workflow that uses the action.
 
 The following represents example metrics submitted for job duration and workflow duration
-
-Metric name: `<prefix>.job_duration`
-
-Metric value: `151.0`
-
-Tags: 
 ```
+Metric name: <prefix>.job_duration
+Metric value: 151.0
+Tags: 
 {
   workflow: "My workflow name",
   project: "scribd/my_repository",
@@ -27,12 +24,10 @@ Tags:
 }
 ```
 
-Metric name: `<prefix>.workflow_duration`
-
-Metric value: `1223.0`
-
-Tags: 
 ```
+Metric name: <prefix>.workflow_duration
+Metric value: 1223.0
+Tags: 
 {
   workflow: "My workflow name",
   project: "scribd/my_repository",
