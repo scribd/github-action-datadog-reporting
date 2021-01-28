@@ -91,7 +91,7 @@ This token allows the action to request information about the workflow run from 
 
 The only permission required for the PAT is `repo`
 
-### DATADOG_TOKEN
+### DATADOG_API_KEY
 
 This token allows the action to submit the metrics to datadog. You can learn how to generate an API token from Datadog here: https://docs.datadoghq.com/account_management/api-app-keys/
 
