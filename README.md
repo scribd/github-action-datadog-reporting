@@ -17,7 +17,7 @@ Metric name: `<prefix>.job_duration`
 
 Metric value: `151.0`
 
-tags: 
+Tags: 
 ```
 {
   workflow: "My workflow name",
@@ -31,7 +31,7 @@ Metric name: `<prefix>.workflow_duration`
 
 Metric value: `1223.0`
 
-tags: 
+Tags: 
 ```
 {
   workflow: "My workflow name",
@@ -50,29 +50,26 @@ This action also provides the capability to establish a separate workflow that t
 
 The following represents example metrics for time to merge, lines changed and time to open
 
-Metric name: `<prefix>.time_to_merge`
-
-Metric value: `897.0`
-
-tags: `{project: "scribd/my_repository"}`
-
-
-
-Metric name: `<prefix>.lines_changed`
-
-Metric value: `123.0`
-
-tags: `{project: "scribd/my_repository"}`
+```
+Metric name: <prefix>.time_to_merge
+Metric value: 1624.0
+Tags: {project: "scribd/my_repository"}
+```
 
 
 
-Metric name: `<prefix>.time_to_open`
+```
+Metric name: <prefix>.lines_changed
+Metric value: 173.0
+Tags: {project: "scribd/my_repository"}
+```
 
-Metric value: `389.0`
 
-tags: `{project: "scribd/my_repository"}`
-
-
+```
+Metric name: <prefix>.time_to_open
+Metric value: 389.0
+Tags: {project: "scribd/my_repository"}
+```
 
 ## Inputs
 
