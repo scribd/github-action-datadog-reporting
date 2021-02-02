@@ -3,8 +3,8 @@ description: 'Reports data on the workflow to datadog'
 inputs:
   datadog-metric-prefix:
     description: 'A prefix for your datadog metrics'
-    required: true
-    default: 'github.ci'
+    required: false
+    default: 'github.action'
   metrics-type:
     description: '"velocity" or "job_metrics" depending on the desired metrics to be collected'
     required: true
