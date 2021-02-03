@@ -115,7 +115,7 @@ metrics:
         ruby-version: 2.6
     - uses: scribd/github-action-datadog-reporting@v1
       with:
-        datadog-metric-prefix: 'project.prefix'
+        datadog-metric-prefix: 'github.action'
         metrics-type: 'job_metrics'
       env:
         DATADOG_API_KEY: ${{ secrets.DATADOG_API_KEY }}
@@ -150,7 +150,7 @@ jobs:
       - id: datadog-metrics
         uses: scribd/github-action-datadog-reporting@v1
         with:
-          datadog-metric-prefix: 'project.prefix'
+          datadog-metric-prefix: 'github.action'
           metrics-type: 'velocity'
         env:
           DATADOG_API_KEY: ${{ secrets.DATADOG_API_KEY }}
