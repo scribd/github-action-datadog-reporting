@@ -48,10 +48,10 @@ The following represents example metrics for time to merge, lines changed and ti
 ```
 Metric name: <prefix>.time_to_merge
 Metric value: 1624.0
-Tags: {project: "scribd/my_repository", "team:My_team"}
+Tags: {project: "scribd/my_repository", "team:my_team", "team:my_team2"}
 ```
 
-Note that team tags are only added if the author of the merge request is part of the organization the repository belongs to.
+Note that team tags are only added if the author of the merge request is part of the organization the repository belongs to. Multiple teams will be tagged if the user belongs to multiple teams in the organization.
 
 ```
 Metric name: <prefix>.lines_changed
