@@ -48,10 +48,10 @@ The following represents example metrics for time to merge, lines changed and ti
 ```
 Metric name: <prefix>.time_to_merge
 Metric value: 1624.0
-Tags: {project: "scribd/my_repository"}
+Tags: {project: "scribd/my_repository", "team:my_team", "team:my_team2"}
 ```
 
-
+Note that team tags are only added if the author of the merge request is part of the organization the repository belongs to. Multiple teams will be tagged if the user belongs to multiple teams in the organization.
 
 ```
 Metric name: <prefix>.lines_changed
@@ -84,7 +84,7 @@ The following two secrets are required to be added to your GitHub settings for a
 
 This token allows the action to request information about the workflow run from GitHub and enables calculating the relevant metrics. You can learn how to generate a personal access token (PAT) here: https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
 
-The only permission required for the PAT is `repo`
+The permission required for the PAT is `repo` and `read:org`
 
 ### DATADOG_API_KEY
 
@@ -147,6 +147,16 @@ jobs:
       - uses: actions/setup-ruby@v1
         with:
           ruby-version: 2.6
+
+      - name: Get Date
+        id: get-date
+        run: echo "::set-output name=date::$(/bin/date -u "+%Y%m%d")"
+
+      - uses: actions/cache@v2
+        with:
+          path: github-teams-cache
+          key: github-teams-cache-${{ steps.get-date.outputs.date }}
+
       - id: datadog-metrics
         uses: scribd/github-action-datadog-reporting@v1
         with:

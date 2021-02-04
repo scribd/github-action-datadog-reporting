@@ -2,6 +2,7 @@ require 'octokit'
 require 'rubygems'
 require 'dogapi'
 require 'date'
+require 'json'
 
 def collect_metrics(jobs, tags)
   jobs.map{|job| collect_job_metrics(job, tags)}.compact + \
@@ -42,13 +43,41 @@ def prior_jobs(jobs)
   jobs.select{|job| !job["conclusion"].nil? }
 end
 
+def cached_get_teams(github_client, org)
+  cache_dir = "github-teams-cache"
+  cache_path = "#{cache_dir}/#{org}"
+  if Dir.exist?(cache_dir) && File.exist?(cache_path)
+    puts "Using cached teams for organization #{org}"
+    return JSON.parse(File.read(cache_path))
+  else
+    puts "No cache found for organization #{org}"
+    teams = github_client.organization_teams(org).map do |team|
+      [team.name, github_client.team_members(team.id).map{|user| user.login}]
+    end.to_h
+    Dir.mkdir(cache_dir) unless Dir.exist?(cache_dir)
+    File.write(cache_path, JSON.dump(teams))
+    teams
+  end
+end
+
+def find_teams(github_client, org, user)
+  return unless github_client.organization_member?(org, user)
+  teams = cached_get_teams(github_client, org)
+  user_teams = teams.reduce([]) do |memo, (team, members)|
+    memo << team if members.include?(user)
+    memo
+  end
+end
+
 def collect_merged_data(github_client, repo)
   pr_info = github_client.pull_request(repo, ENV['PR_NUMBER'])
   time_to_merge = pr_info["merged_at"] - pr_info["created_at"]
   diff_size = pr_info["additions"] + pr_info["deletions"]
+  users_teams = find_teams(github_client, repo.split("/").first, pr_info.user.login)
+  tags = users_teams.map{|team| "team:#{team}"} + ["project:#{repo}"]
   [
-    ["time_to_merge", time_to_merge, ["project:#{repo}"]],
-    ["lines_changed", diff_size, ["project:#{repo}"]]
+    ["time_to_merge", time_to_merge, tags],
+    ["lines_changed", diff_size, tags]
   ]
 end
 
