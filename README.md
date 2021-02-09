@@ -76,7 +76,7 @@ A prefix for all of the datadog metrics. If multiple projects in your organizati
 
 Internal configuration for the action. `job_metrics` should be passed for capturing job_duration and workflow durations, while `velocity` should be passed when used in a `Velocity Workflow` as seen below.
 
-## Enviornment Variables
+## Environment Variables
 
 The following two secrets are required to be added to your GitHub settings for access to Datadog and GitHub during the workflow run.
 
