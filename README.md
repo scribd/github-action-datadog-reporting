@@ -119,16 +119,16 @@ jobs:
     name: Datadog reports
     if: ${{ always() }}
     steps:
-    - uses: actions/setup-ruby@v1
-      with:
-        ruby-version: 2.6
-    - uses: scribd/github-action-datadog-reporting@v1
-      with:
-        datadog-metric-prefix: 'github.action'
-        metrics-type: 'job_metrics'
-      env:
-        DATADOG_API_KEY: ${{ secrets.DATADOG_API_KEY }}
-        OCTOKIT_TOKEN: ${{ secrets.OCTOKIT_TOKEN }}
+      - uses: actions/setup-ruby@v1
+        with:
+          ruby-version: 2.6
+      - uses: scribd/github-action-datadog-reporting@v1
+        with:
+          datadog-metric-prefix: 'github.action'
+          metrics-type: 'job_metrics'
+        env:
+          DATADOG_API_KEY: ${{ secrets.DATADOG_API_KEY }}
+          OCTOKIT_TOKEN: ${{ secrets.OCTOKIT_TOKEN }}
 ```
 
 ### Capture Development Velocity Metrics
