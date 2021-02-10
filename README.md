@@ -104,7 +104,16 @@ The metrics that are captured for GitHub Action jobs are:
   - Tagged with workflow status, workflow name, and repository.
 
 ```
-metrics:
+name: My Workflow with Metrics
+jobs:
+  job1:
+    ...
+  job2:
+    needs: [job1]
+    ...
+  job3:
+    ...
+  metrics:
     needs: [job2, job3]
     runs-on: ubuntu-latest
     name: Datadog reports
