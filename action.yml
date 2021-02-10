@@ -28,4 +28,4 @@ runs:
     - id: metric
       shell: bash
       run: |
-        ruby ./report_github_metrics.rb ${{github.repository}} ${{github.run_id}} ${{ inputs.datadog-metric-prefix }}
+        ruby ${{ github.action_path }}/report_github_metrics.rb ${{github.repository}} ${{github.run_id}} ${{ inputs.datadog-metric-prefix }}
