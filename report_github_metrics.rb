@@ -74,7 +74,8 @@ def collect_merged_data(github_client, repo)
   time_to_merge = pr_info["merged_at"] - pr_info["created_at"]
   diff_size = pr_info["additions"] + pr_info["deletions"]
   users_teams = find_teams(github_client, repo.split("/").first, pr_info.user.login)
-  tags = users_teams.map{|team| "team:#{team}"} + ["project:#{repo}"]
+  tags = ["project:#{repo}"]
+  tags += users_teams.map{|team| "team:#{team}"} if users_teams.count.positive?
   [
     ["time_to_merge", time_to_merge, tags],
     ["lines_changed", diff_size, tags]
