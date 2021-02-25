@@ -157,20 +157,18 @@ jobs:
         with:
           ruby-version: 2.6
 
-      - name: Get Date
-        id: get-date
-        run: echo "::set-output name=date::$(/bin/date -u "+%Y%m%d")"
-
-      - uses: actions/cache@v2
+      - uses: tspascoal/get-user-teams-membership@v1
+        id: actorTeams
         with:
-          path: github-teams-cache
-          key: github-teams-cache-${{ steps.get-date.outputs.date }}
+          username: ${{ github.event.pull_request.user.login }}
+          GITHUB_TOKEN: ${{ secrets.OCTOKIT_TOKEN }}
 
       - id: datadog-metrics
         uses: scribd/github-action-datadog-reporting@v1
         with:
           datadog-metric-prefix: 'github.action'
           metrics-type: 'velocity'
+          teams: ${{ steps.actorTeams.outputs.teams }}
         env:
           DATADOG_API_KEY: ${{ secrets.DATADOG_API_KEY }}
           OCTOKIT_TOKEN: ${{ secrets.OCTOKIT_TOKEN }}

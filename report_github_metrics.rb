@@ -43,39 +43,12 @@ def prior_jobs(jobs)
   jobs.select{|job| !job["conclusion"].nil? }
 end
 
-def cached_get_teams(github_client, org)
-  cache_dir = "github-teams-cache"
-  cache_path = "#{cache_dir}/#{org}"
-  if Dir.exist?(cache_dir) && File.exist?(cache_path)
-    puts "Using cached teams for organization #{org}"
-    return JSON.parse(File.read(cache_path))
-  else
-    puts "No cache found for organization #{org}"
-    teams = github_client.organization_teams(org).map do |team|
-      [team.name, github_client.team_members(team.id).map{|user| user.login}]
-    end.to_h
-    Dir.mkdir(cache_dir) unless Dir.exist?(cache_dir)
-    File.write(cache_path, JSON.dump(teams))
-    teams
-  end
-end
-
-def find_teams(github_client, org, user)
-  return unless github_client.organization_member?(org, user)
-  teams = cached_get_teams(github_client, org)
-  user_teams = teams.reduce([]) do |memo, (team, members)|
-    memo << team if members.include?(user)
-    memo
-  end
-end
-
-def collect_merged_data(github_client, repo)
+def collect_merged_data(github_client, repo, teams)
   pr_info = github_client.pull_request(repo, ENV['PR_NUMBER'])
   time_to_merge = pr_info["merged_at"] - pr_info["created_at"]
   diff_size = pr_info["additions"] + pr_info["deletions"]
-  users_teams = find_teams(github_client, repo.split("/").first, pr_info.user.login)
   tags = ["project:#{repo}"]
-  tags += users_teams.map{|team| "team:#{team}"} if users_teams && users_teams.count.positive?
+  tags += teams.map{|team| "team:#{team}"} if teams && teams.count.positive?
   [
     ["time_to_merge", time_to_merge, tags],
     ["lines_changed", diff_size, tags]
@@ -96,17 +69,19 @@ def collect_duration_data(github_client, repo, run)
   collect_metrics(jobs, tags)
 end
 
+repo = ARGV[0].strip
+run = ARGV[1].strip
 metric_prefix = ARGV[2].strip
+teams = ARGV[3].nil? || ARGV[3] == '' ? [] : JSON.parse(ARGV[3].strip)
 metric_prefix += "." unless metric_prefix.end_with?(".")
 datadog_client = Dogapi::Client.new(ENV['DATADOG_API_KEY'])
 github_client = Octokit::Client.new(:access_token => ENV['OCTOKIT_TOKEN'])
-repo = ARGV[0].strip
-run = ARGV[1].strip
+
 metrics = nil
 
 case ENV['ACTION'].strip
 when "closed"
-  metrics = collect_merged_data(github_client, repo)
+  metrics = collect_merged_data(github_client, repo, teams)
 when "opened"
   metrics = collect_opened_data(github_client, repo)
 when "job_metrics"
