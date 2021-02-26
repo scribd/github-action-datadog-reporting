@@ -157,8 +157,10 @@ jobs:
         with:
           ruby-version: 2.6
 
+      # Optional step that allows tagging time to merge with a team
       - uses: tspascoal/get-user-teams-membership@v1
         id: actorTeams
+        if: ${{ !endsWith(github.event.pull_request.user.login, '[bot]') }}
         with:
           username: ${{ github.event.pull_request.user.login }}
           GITHUB_TOKEN: ${{ secrets.OCTOKIT_TOKEN }}
