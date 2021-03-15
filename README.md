@@ -66,6 +66,10 @@ Metric value: 389.0
 Tags: {project: "scribd/my_repository"}
 ```
 
+### Metric Counts
+
+In addition to all of the above metrics, a metric is also submitted with the value 1 that is named `<prefix>.<metric-name>.count` for each metric to allow for counting the number of each metric submitted.
+
 ## Inputs
 
 ### datadog-metric-prefix
