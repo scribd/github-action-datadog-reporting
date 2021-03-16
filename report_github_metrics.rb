@@ -35,6 +35,7 @@ def submit_metrics(metrics, datadog_client, metric_prefix)
       metric = metric_prefix + metric
       puts "#{metric}, #{value}, #{tags}"
       datadog_client.emit_point(metric, value, :tags => tags, :type => 'gauge')
+      datadog_client.emit_point(metric + ".count", 1, :tags => tags, :type => 'counter')
     end
   end
 end
