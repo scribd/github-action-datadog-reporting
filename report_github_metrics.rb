@@ -56,11 +56,15 @@ def collect_merged_data(github_client, repo, teams)
   ]
 end
 
-def collect_opened_data(github_client, repo)
+def collect_opened_data(github_client, repo, teams)
   pr_info = github_client.pull_request(repo, ENV['PR_NUMBER'])
   commits = github_client.get(pr_info["commits_url"])
   time_to_open = pr_info["created_at"] - commits.first["commit"]["committer"]["date"]
-  [["time_to_open", time_to_open, ["project:#{repo}"]]]
+  tags = ["project:#{repo}"]
+  tags += teams.map{|team| "team:#{team}"} if teams && teams.count.positive?
+  [
+    ["time_to_open", time_to_open, tags]
+  ]
 end
 
 def collect_duration_data(github_client, repo, run)
@@ -84,7 +88,7 @@ case ENV['ACTION'].strip
 when "closed"
   metrics = collect_merged_data(github_client, repo, teams)
 when "opened"
-  metrics = collect_opened_data(github_client, repo)
+  metrics = collect_opened_data(github_client, repo, teams)
 when "job_metrics"
   metrics = collect_duration_data(github_client, repo, run)
 end
