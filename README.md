@@ -123,7 +123,7 @@ jobs:
     name: Datadog reports
     if: ${{ always() }}
     steps:
-      - uses: actions/setup-ruby@v1
+      - uses: ruby/setup-ruby@v1
         with:
           ruby-version: 2.6
       - uses: scribd/github-action-datadog-reporting@v1
@@ -157,7 +157,7 @@ jobs:
     name: Track merge request activity
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-ruby@v1
+      - uses: ruby/setup-ruby@v1
         with:
           ruby-version: 2.6
 
