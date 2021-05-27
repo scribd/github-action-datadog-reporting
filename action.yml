@@ -12,6 +12,10 @@ inputs:
     description: 'An array of teams to tag the time to merge metric with'
     required: false
     default: '[]'
+  tagged-branches:
+    description: 'If provided enables tagging for specified branches. Metrics are tagged with branch:{branch} or branch:other'
+    required: false
+    default: '[]'
 runs:
   using: "composite"
   steps:
@@ -32,4 +36,4 @@ runs:
     - id: metric
       shell: bash
       run: |
-        ruby ${{ github.action_path }}/report_github_metrics.rb ${{github.repository}} ${{github.run_id}} ${{ inputs.datadog-metric-prefix }} '${{ inputs.teams }}'
+        ruby ${{ github.action_path }}/report_github_metrics.rb ${{github.repository}} ${{github.run_id}} ${{ inputs.datadog-metric-prefix }} '${{ inputs.teams }}' '${{ inputs.tagged-branches }}'

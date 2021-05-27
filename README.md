@@ -80,6 +80,10 @@ A prefix for all of the datadog metrics. If multiple projects in your organizati
 
 Internal configuration for the action. `job_metrics` should be passed for capturing job_duration and workflow durations, while `velocity` should be passed when used in a `Velocity Workflow` as seen below.
 
+### tagged-branches (Optional)
+
+An array of named branches to enable tagging of workflow metrics with `branch:{branch}` or `branch:other` depending on if the workflow is being run on a tagged branch or not. Only used if metrics-type is `job_metrics`. Example values: `'["main"]'`, `'["main", "staging", "production"]'`
+
 ## Environment Variables
 
 The following two secrets are required to be added to your GitHub settings for access to Datadog and GitHub during the workflow run.
