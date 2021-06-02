@@ -4,9 +4,9 @@ require 'dogapi'
 require 'date'
 require 'json'
 
-def collect_metrics(jobs, tags, branch)
+def collect_metrics(jobs, tags)
   jobs.map{|job| collect_job_metrics(job, tags)}.compact + \
-  collect_workflow_metrics(jobs, tags, branch)
+  collect_workflow_metrics(jobs, tags)
 end
 
 def collect_job_metrics(job, tags)
@@ -18,13 +18,10 @@ def collect_job_metrics(job, tags)
   ]
 end
 
-def collect_workflow_metrics(jobs, tags, branch)
+def collect_workflow_metrics(jobs, tags)
   start = jobs.min_by{|job| job["started_at"]}["started_at"]
   finish = jobs.max_by{|job| job["completed_at"]}["completed_at"]
   status = jobs.all?{|job| ["success", "skipped"].include? job["conclusion"]} ? "success" : "failure"
-  if TAGGED_BRANCHES != []
-    tags += ["branch:#{TAGGED_BRANCHES.include?(branch) ? branch : "other" }"]
-  end
   [[
     "workflow_duration",
     finish - start,
@@ -75,7 +72,10 @@ def collect_duration_data(github_client, repo, run)
   tags = ["workflow:#{workflow["name"]}", "project:#{repo}"]
   jobs = prior_jobs(github_client.get(workflow["jobs_url"])["jobs"])
   branch = workflow["head_branch"]
-  collect_metrics(jobs, tags, branch)
+  if TAGGED_BRANCHES != []
+    tags += ["branch:#{TAGGED_BRANCHES.include?(branch) ? branch : "other" }"]
+  end
+  collect_metrics(jobs, tags)
 end
 
 TAGGED_BRANCHES = ARGV[4].nil? || ARGV[4] == '' ? [] : JSON.parse(ARGV[4].strip)

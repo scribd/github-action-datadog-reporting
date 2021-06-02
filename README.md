@@ -82,7 +82,7 @@ Internal configuration for the action. `job_metrics` should be passed for captur
 
 ### tagged-branches (Optional)
 
-An array of named branches to enable tagging of workflow metrics with `branch:{branch}` or `branch:other` depending on if the workflow is being run on a tagged branch or not. Only used if metrics-type is `job_metrics`. Example values: `'["main"]'`, `'["main", "staging", "production"]'`
+An array of named branches to enable tagging of workflow and job metrics with `branch:{branch}` or `branch:other` depending on if the workflow is being run on a tagged branch or not. Only used if metrics-type is `job_metrics`. Example values: `'["main"]'`, `'["main", "staging", "production"]'`
 
 ## Environment Variables
 
