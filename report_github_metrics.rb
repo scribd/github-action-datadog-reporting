@@ -40,8 +40,16 @@ def submit_metrics(metrics, datadog_client, metric_prefix)
   end
 end
 
-def prior_jobs(jobs)
-  jobs.select{|job| !job["conclusion"].nil? }
+def prior_jobs(github_client, jobs)
+  length = jobs[:total_count].to_i
+  finished_jobs = jobs[:jobs].select{|job| !job["conclusion"].nil? }
+  while length - jobs[:jobs].length > 0
+    length -= jobs[:jobs].length
+    jobs = github_client.get(github_client.last_response.rels[:next].href)
+    finished_jobs += jobs[:jobs].select{|job| !job["conclusion"].nil? }
+  end
+  puts "Found #{finished_jobs.count} completed jobs to report out of #{jobs[:total_count]} total jobs"
+  finished_jobs
 end
 
 def collect_merged_data(github_client, repo, teams)
@@ -70,7 +78,7 @@ end
 def collect_duration_data(github_client, repo, run)
   workflow = github_client.get("repos/#{repo}/actions/runs/#{run}")
   tags = ["workflow:#{workflow["name"]}", "project:#{repo}"]
-  jobs = prior_jobs(github_client.get(workflow["jobs_url"])["jobs"])
+  jobs = prior_jobs(github_client, github_client.get(workflow["jobs_url"]))
   branch = workflow["head_branch"]
   if TAGGED_BRANCHES != []
     tags += ["branch:#{TAGGED_BRANCHES.include?(branch) ? branch : "other" }"]
