@@ -52,11 +52,13 @@ def prior_jobs(github_client, jobs)
   finished_jobs
 end
 
-def collect_merged_data(github_client, repo, teams)
+def collect_merged_data(github_client, repo, teams, run)
+  workflow = github_client.get("repos/#{repo}/actions/runs/#{run}")
   pr_info = github_client.pull_request(repo, ENV['PR_NUMBER'])
   time_to_merge = pr_info["merged_at"] - pr_info["created_at"]
   diff_size = pr_info["additions"] + pr_info["deletions"]
-  tags = ["project:#{repo}"]
+  branch = workflow["head_branch"]
+  tags = ["project:#{repo}", "branch:#{branch}"]
   tags += teams.map{|team| "team:#{team}"} if teams && teams.count.positive?
   [
     ["time_to_merge", time_to_merge, tags],
@@ -100,7 +102,7 @@ metrics = nil
 
 case ENV['ACTION'].strip
 when "closed"
-  metrics = collect_merged_data(github_client, repo, teams)
+  metrics = collect_merged_data(github_client, repo, teams, run)
 when "opened"
   metrics = collect_opened_data(github_client, repo, teams)
 when "job_metrics"
