@@ -54,9 +54,11 @@ end
 
 def collect_merged_data(github_client, repo, teams)
   pr_info = github_client.pull_request(repo, ENV['PR_NUMBER'])
+  base_branch = pr_info[:base][:ref]
+  default_branch = pr_info[:base][:repo][:default_branch]
   time_to_merge = pr_info["merged_at"] - pr_info["created_at"]
   diff_size = pr_info["additions"] + pr_info["deletions"]
-  tags = ["project:#{repo}"]
+  tags = ["project:#{repo}", "default_branch:#{base_branch == default_branch}"]
   tags += teams.map{|team| "team:#{team}"} if teams && teams.count.positive?
   [
     ["time_to_merge", time_to_merge, tags],
@@ -66,9 +68,11 @@ end
 
 def collect_opened_data(github_client, repo, teams)
   pr_info = github_client.pull_request(repo, ENV['PR_NUMBER'])
+  base_branch = pr_info[:base][:ref]
+  default_branch = pr_info[:base][:repo][:default_branch]
   commits = github_client.get(pr_info["commits_url"])
   time_to_open = pr_info["created_at"] - commits.first["commit"]["committer"]["date"]
-  tags = ["project:#{repo}"]
+  tags = ["project:#{repo}", "default_branch:#{base_branch == default_branch}"]
   tags += teams.map{|team| "team:#{team}"} if teams && teams.count.positive?
   [
     ["time_to_open", time_to_open, tags]
