@@ -84,6 +84,10 @@ Internal configuration for the action. `job_metrics` should be passed for captur
 
 An array of named branches to enable tagging of workflow and job metrics with `branch:{branch}` or `branch:other` depending on if the workflow is being run on a tagged branch or not. Only used if metrics-type is `job_metrics`. Example values: `'["main"]'`, `'["main", "staging", "production"]'`
 
+### custom-tags (Optional)
+
+An array of custom tags to attach to any metrics sent to datadog. Example values: `'["tag:value"]'`, `'["tag1:value1", "tag2:value2"]'`
+
 ## Environment Variables
 
 The following two secrets are required to be added to your GitHub settings for access to Datadog and GitHub during the workflow run.
