@@ -16,6 +16,11 @@ inputs:
     description: 'If provided enables tagging for specified branches. Metrics are tagged with branch:{branch} or branch:other'
     required: false
     default: '[]'
+  custom-tags:
+    description: 'A list of tags to attach to the metrics. In the format of "[TAG1:VALUE1,TAG2:VALUE2,..]".'
+    required: false
+    default: '[]'
+
 runs:
   using: "composite"
   steps:
@@ -36,4 +41,4 @@ runs:
     - id: metric
       shell: bash
       run: |
-        ruby ${{ github.action_path }}/report_github_metrics.rb ${{github.repository}} ${{github.run_id}} ${{ inputs.datadog-metric-prefix }} '${{ inputs.teams }}' '${{ inputs.tagged-branches }}'
+        ruby ${{ github.action_path }}/report_github_metrics.rb ${{github.repository}} ${{github.run_id}} ${{ inputs.datadog-metric-prefix }} '${{ inputs.teams }}' '${{ inputs.tagged-branches }}' '${{ inputs.custom-tags }}'

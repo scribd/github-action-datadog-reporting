@@ -58,7 +58,7 @@ def collect_merged_data(github_client, repo, teams)
   default_branch = pr_info[:base][:repo][:default_branch]
   time_to_merge = pr_info["merged_at"] - pr_info["created_at"]
   diff_size = pr_info["additions"] + pr_info["deletions"]
-  tags = ["project:#{repo}", "default_branch:#{base_branch == default_branch}"]
+  tags = CUSTOM_TAGS + ["project:#{repo}", "default_branch:#{base_branch == default_branch}"]
   tags += teams.map{|team| "team:#{team}"} if teams && teams.count.positive?
   [
     ["time_to_merge", time_to_merge, tags],
@@ -72,7 +72,7 @@ def collect_opened_data(github_client, repo, teams)
   default_branch = pr_info[:base][:repo][:default_branch]
   commits = github_client.get(pr_info["commits_url"])
   time_to_open = pr_info["created_at"] - commits.first["commit"]["committer"]["date"]
-  tags = ["project:#{repo}", "default_branch:#{base_branch == default_branch}"]
+  tags = CUSTOM_TAGS + ["project:#{repo}", "default_branch:#{base_branch == default_branch}"]
   tags += teams.map{|team| "team:#{team}"} if teams && teams.count.positive?
   [
     ["time_to_open", time_to_open, tags]
@@ -81,7 +81,7 @@ end
 
 def collect_duration_data(github_client, repo, run)
   workflow = github_client.get("repos/#{repo}/actions/runs/#{run}")
-  tags = ["workflow:#{workflow["name"]}", "project:#{repo}"]
+  tags = CUSTOM_TAGS + ["workflow:#{workflow["name"]}", "project:#{repo}"]
   jobs = prior_jobs(github_client, github_client.get(workflow["jobs_url"]))
   branch = workflow["head_branch"]
   if TAGGED_BRANCHES != []
@@ -90,12 +90,17 @@ def collect_duration_data(github_client, repo, run)
   collect_metrics(jobs, tags)
 end
 
-TAGGED_BRANCHES = ARGV[4].nil? || ARGV[4] == '' ? [] : JSON.parse(ARGV[4].strip)
+def parse_array_input(arg)
+  arg.nil? || arg == '' ? [] : JSON.parse(arg.strip)
+end
+
+TAGGED_BRANCHES = parse_array_input(ARGV[4])
+CUSTOM_TAGS = parse_array_input(ARGV[5])
 
 repo = ARGV[0].strip
 run = ARGV[1].strip
 metric_prefix = ARGV[2].strip
-teams = ARGV[3].nil? || ARGV[3] == '' ? [] : JSON.parse(ARGV[3].strip)
+teams = parse_array_input(ARGV[3])
 metric_prefix += "." unless metric_prefix.end_with?(".")
 datadog_client = Dogapi::Client.new(ENV['DATADOG_API_KEY'])
 github_client = Octokit::Client.new(:access_token => ENV['OCTOKIT_TOKEN'])
