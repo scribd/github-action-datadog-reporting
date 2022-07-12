@@ -27,8 +27,8 @@ runs:
     - name: Install required libraries for gems
       shell: bash
       run: |
-        gem install octokit --silent
-        gem install dogapi --silent
+        gem install octokit -v 4.25.1
+        gem install dogapi -v 1.45.0
     - name: Export extra data
       shell: bash
       run: |
