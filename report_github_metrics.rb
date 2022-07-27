@@ -21,7 +21,13 @@ end
 def collect_workflow_metrics(jobs, tags)
   start = jobs.min_by{|job| job["started_at"]}["started_at"]
   finish = jobs.max_by{|job| job["completed_at"]}["completed_at"]
-  status = jobs.all?{|job| ["success", "skipped"].include? job["conclusion"]} ? "success" : "failure"
+  status = if jobs.any?{|job| job["conclusion"] == "cancelled"}
+             "cancelled"
+           elsif jobs.all?{|job| ["success", "skipped"].include? job["conclusion"]}
+             "success"
+           else
+             "failure"
+           end
   [[
     "workflow_duration",
     finish - start,
