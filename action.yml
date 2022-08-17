@@ -20,6 +20,10 @@ inputs:
     description: 'A list of tags to attach to the metrics. In the format of "[TAG1:VALUE1,TAG2:VALUE2,..]".'
     required: false
     default: '[]'
+  api-url:
+    description: 'The datadog regional api url. Defaults to https://api.datadoghq.com'
+    required: false
+    default: 'https://api.datadoghq.com'
 
 runs:
   using: "composite"
@@ -41,4 +45,4 @@ runs:
     - id: metric
       shell: bash
       run: |
-        ruby ${{ github.action_path }}/report_github_metrics.rb ${{github.repository}} ${{github.run_id}} ${{ inputs.datadog-metric-prefix }} '${{ inputs.teams }}' '${{ inputs.tagged-branches }}' '${{ inputs.custom-tags }}'
+        ruby ${{ github.action_path }}/report_github_metrics.rb ${{github.repository}} ${{github.run_id}} ${{ inputs.datadog-metric-prefix }} '${{ inputs.teams }}' '${{ inputs.tagged-branches }}' '${{ inputs.custom-tags }}' ${{ inputs.api-url }}
