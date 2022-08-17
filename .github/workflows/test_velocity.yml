@@ -1,0 +1,30 @@
+name: Test Velocity Workflow - EU
+on:
+  pull_request:
+    types: [opened, closed]
+env:
+  DD_SITE: 'https://api.datadog.eu'
+jobs:
+  metrics:
+    if: |
+      (github.event.action == 'closed' &&
+      github.event.pull_request.merged == true) ||
+      github.event.action == 'opened'
+    name: Track merge request activity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 2.6
+      - name: checkout
+        uses: actions/checkout@v3
+      - id: datadog-metrics
+        uses: ./
+        with:
+          datadog-metric-prefix: 'github.action'
+          metrics-type: 'velocity'
+          teams: ${{ steps.actorTeams.outputs.teams }}
+          api-url: ${{ env.DD_SITE }}
+        env:
+          DATADOG_API_KEY: ${{ secrets.DATADOG_API_KEY }}
+          OCTOKIT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
