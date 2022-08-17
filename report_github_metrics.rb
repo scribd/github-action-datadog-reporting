@@ -109,6 +109,7 @@ metric_prefix = ARGV[2].strip
 teams = parse_array_input(ARGV[3])
 metric_prefix += "." unless metric_prefix.end_with?(".")
 datadog_client = Dogapi::Client.new(ENV['DATADOG_API_KEY'])
+datadog_client.datadog_host = ARGV[6].strip
 github_client = Octokit::Client.new(:access_token => ENV['OCTOKIT_TOKEN'])
 
 metrics = nil

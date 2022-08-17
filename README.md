@@ -88,6 +88,10 @@ An array of named branches to enable tagging of workflow and job metrics with `b
 
 An array of custom tags to attach to any metrics sent to datadog. Example values: `'["tag:value"]'`, `'["tag1:value1", "tag2:value2"]'`
 
+### api-url (Optional)
+
+The datadog api url. Defaults to `https://api.datadoghq.com`.  Can be used to override for datadog regional endpoints or a proxy.
+
 ## Environment Variables
 
 The following two secrets are required to be added to your GitHub settings for access to Datadog and GitHub during the workflow run.
