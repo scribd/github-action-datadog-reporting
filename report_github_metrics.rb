@@ -4,9 +4,9 @@ require 'dogapi'
 require 'date'
 require 'json'
 
-def collect_metrics(jobs, tags)
+def collect_metrics(workflow, jobs, tags)
   jobs.map{|job| collect_job_metrics(job, tags)}.compact + \
-  collect_workflow_metrics(jobs, tags)
+  collect_workflow_metrics(workflow, jobs, tags)
 end
 
 def collect_job_metrics(job, tags)
@@ -18,8 +18,8 @@ def collect_job_metrics(job, tags)
   ]
 end
 
-def collect_workflow_metrics(jobs, tags)
-  start = jobs.min_by{|job| job["started_at"]}["started_at"]
+def collect_workflow_metrics(workflow, jobs, tags)
+  start = workflow["run_started_at"]
   finish = jobs.max_by{|job| job["completed_at"]}["completed_at"]
   status = if jobs.any?{|job| job["conclusion"] == "cancelled"}
              "cancelled"
@@ -93,7 +93,7 @@ def collect_duration_data(github_client, repo, run)
   if TAGGED_BRANCHES != []
     tags += ["branch:#{TAGGED_BRANCHES.include?(branch) ? branch : "other" }"]
   end
-  collect_metrics(jobs, tags)
+  collect_metrics(workflow, jobs, tags)
 end
 
 def parse_array_input(arg)
