@@ -4,9 +4,9 @@ require 'dogapi'
 require 'date'
 require 'json'
 
-def collect_metrics(workflow, jobs, tags)
+def collect_metrics(workflow_run, jobs, tags)
   jobs.map{|job| collect_job_metrics(job, tags)}.compact + \
-  collect_workflow_metrics(workflow, jobs, tags)
+  collect_workflow_metrics(workflow_run, jobs, tags)
 end
 
 def collect_job_metrics(job, tags)
@@ -18,8 +18,8 @@ def collect_job_metrics(job, tags)
   ]
 end
 
-def collect_workflow_metrics(workflow, jobs, tags)
-  start = workflow["run_started_at"]
+def collect_workflow_metrics(workflow_run, jobs, tags)
+  start = workflow_run["run_started_at"]
   finish = jobs.max_by{|job| job["completed_at"]}["completed_at"]
   status = if jobs.any?{|job| job["conclusion"] == "cancelled"}
              "cancelled"
@@ -85,15 +85,16 @@ def collect_opened_data(github_client, repo, teams)
   ]
 end
 
-def collect_duration_data(github_client, repo, run)
-  workflow = github_client.get("repos/#{repo}/actions/runs/#{run}")
+def collect_duration_data(github_client, repo, run_id)
+  run = github_client.get("repos/#{repo}/actions/runs/#{run_id}")
+  workflow = github_client.get("repos/#{repo}/actions/workflows/#{run["workflow_id"]}")
   tags = CUSTOM_TAGS + ["workflow:#{workflow["name"]}", "project:#{repo}"]
-  jobs = prior_jobs(github_client, github_client.get(workflow["jobs_url"]))
-  branch = workflow["head_branch"]
+  jobs = prior_jobs(github_client, github_client.get(run["jobs_url"]))
+  branch = run["head_branch"]
   if TAGGED_BRANCHES != []
     tags += ["branch:#{TAGGED_BRANCHES.include?(branch) ? branch : "other" }"]
   end
-  collect_metrics(workflow, jobs, tags)
+  collect_metrics(run, jobs, tags)
 end
 
 def parse_array_input(arg)
@@ -104,7 +105,7 @@ TAGGED_BRANCHES = parse_array_input(ARGV[4])
 CUSTOM_TAGS = parse_array_input(ARGV[5])
 
 repo = ARGV[0].strip
-run = ARGV[1].strip
+run_id = ARGV[1].strip
 metric_prefix = ARGV[2].strip
 teams = parse_array_input(ARGV[3])
 metric_prefix += "." unless metric_prefix.end_with?(".")
@@ -120,7 +121,7 @@ when "closed"
 when "opened"
   metrics = collect_opened_data(github_client, repo, teams)
 when "job_metrics"
-  metrics = collect_duration_data(github_client, repo, run)
+  metrics = collect_duration_data(github_client, repo, run_id)
 end
 
 submit_metrics(metrics, datadog_client, metric_prefix) if metrics
