@@ -28,11 +28,11 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Install required libraries for gems
-      shell: bash
-      run: |
-        gem install octokit -v 4.25.1
-        gem install dogapi -v 1.45.0
+    - uses: ruby/setup-ruby@v1
+      with:
+        working-directory: ${{ github.action_path }}
+        bundler-cache: true
+
     - name: Export extra data
       shell: bash
       run: |
@@ -45,4 +45,5 @@ runs:
     - id: metric
       shell: bash
       run: |
-        ruby ${{ github.action_path }}/report_github_metrics.rb ${{github.repository}} ${{github.run_id}} ${{ inputs.datadog-metric-prefix }} '${{ inputs.teams }}' '${{ inputs.tagged-branches }}' '${{ inputs.custom-tags }}' ${{ inputs.api-url }}
+        cd ${{ github.action_path }}
+        bundle exec ruby report_github_metrics.rb ${{github.repository}} ${{github.run_id}} ${{ inputs.datadog-metric-prefix }} '${{ inputs.teams }}' '${{ inputs.tagged-branches }}' '${{ inputs.custom-tags }}' ${{ inputs.api-url }}
