@@ -135,10 +135,7 @@ jobs:
     name: Datadog reports
     if: ${{ always() }}
     steps:
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: 2.6
-      - uses: scribd/github-action-datadog-reporting@v1
+      - uses: scribd/github-action-datadog-reporting@v2
         with:
           datadog-metric-prefix: 'github.action'
           metrics-type: 'job_metrics'
@@ -169,10 +166,6 @@ jobs:
     name: Track merge request activity
     runs-on: ubuntu-latest
     steps:
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: 2.6
-
       # Optional step that allows tagging time to merge with a team
       - uses: tspascoal/get-user-teams-membership@v1
         id: actorTeams
@@ -182,7 +175,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.OCTOKIT_TOKEN }}
 
       - id: datadog-metrics
-        uses: scribd/github-action-datadog-reporting@v1
+        uses: scribd/github-action-datadog-reporting@v2
         with:
           datadog-metric-prefix: 'github.action'
           metrics-type: 'velocity'
