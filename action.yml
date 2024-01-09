@@ -31,6 +31,7 @@ runs:
     - name: Install required libraries for gems
       shell: bash
       run: |
+        gem install faraday -v 2.8.1
         gem install octokit -v 4.25.1
         gem install dogapi -v 1.45.0
     - name: Export extra data
