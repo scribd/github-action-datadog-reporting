@@ -28,10 +28,11 @@ def collect_workflow_metrics(workflow_run, jobs, tags)
            else
              "failure"
            end
+  is_retry = workflow_run["run_attempt"] > 1
   [[
     "workflow_duration",
     finish - start,
-    tags + ["status:#{status}"]
+    tags + ["status:#{status}","retry:#{is_retry}"]
   ]]
 end
 
