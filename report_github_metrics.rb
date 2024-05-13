@@ -63,14 +63,31 @@ def collect_merged_data(github_client, repo, teams)
   pr_info = github_client.pull_request(repo, ENV['PR_NUMBER'])
   base_branch = pr_info[:base][:ref]
   default_branch = pr_info[:base][:repo][:default_branch]
+  
+  # Calculate time to merge
   time_to_merge = pr_info["merged_at"] - pr_info["created_at"]
+  
+  # Calculate lines changed
   diff_size = pr_info["additions"] + pr_info["deletions"]
+  
+  # Calculate time from first review to merge
+  first_review_time = first_review_creation_time(github_client, pr_info)
+  time_from_first_review_to_merge = pr_info["merged_at"] - first_review_time
+
   tags = CUSTOM_TAGS + ["project:#{repo}", "default_branch:#{base_branch == default_branch}"]
   tags += teams.map{|team| "team:#{team}"} if teams && teams.count.positive?
+  
   [
     ["time_to_merge", time_to_merge, tags],
-    ["lines_changed", diff_size, tags]
+    ["lines_changed", diff_size, tags],
+    ["time_from_first_review_to_merge", time_from_first_review_to_merge, tags] # Adding time from first review to merge metric
   ]
+end
+
+def first_review_creation_time(github_client, pr_info)
+  reviews = github_client.pull_request_reviews(pr_info[:base][:repo][:full_name], pr_info[:number])
+  first_review = reviews.find { |review| review["state"] == "APPROVED" || review["state"] == "CHANGES_REQUESTED" }
+  first_review.nil? ? pr_info["created_at"] : first_review["submitted_at"]
 end
 
 def collect_opened_data(github_client, repo, teams)
