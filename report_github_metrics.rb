@@ -2,7 +2,10 @@ require 'octokit'
 require 'rubygems'
 require 'dogapi'
 require 'date'
+require 'time'
 require 'json'
+
+MERGE_QUEUE_ADD_KEY = "merge_queue_add_time"
 
 def collect_metrics(workflow_run, jobs, tags)
   jobs.map{|job| collect_job_metrics(job, tags)}.compact + \
@@ -63,14 +66,30 @@ def collect_merged_data(github_client, repo, teams)
   pr_info = github_client.pull_request(repo, ENV['PR_NUMBER'])
   base_branch = pr_info[:base][:ref]
   default_branch = pr_info[:base][:repo][:default_branch]
+
+  # Calculate time to merge
   time_to_merge = pr_info["merged_at"] - pr_info["created_at"]
+
+  # Calculate lines changed
   diff_size = pr_info["additions"] + pr_info["deletions"]
+
+  # Calculate time from first review to merge
+  first_review_time = first_review_creation_time(github_client, pr_info)
+  time_from_first_review_to_merge = pr_info["merged_at"] - first_review_time
+
   tags = CUSTOM_TAGS + ["project:#{repo}", "default_branch:#{base_branch == default_branch}"]
   tags += teams.map{|team| "team:#{team}"} if teams && teams.count.positive?
   [
     ["time_to_merge", time_to_merge, tags],
-    ["lines_changed", diff_size, tags]
+    ["lines_changed", diff_size, tags],
+    ["time_from_first_review_to_merge", time_from_first_review_to_merge, tags] # Adding time from first review to merge metric
   ]
+end
+
+def first_review_creation_time(github_client, pr_info)
+  reviews = github_client.pull_request_reviews(pr_info[:base][:repo][:full_name], pr_info[:number])
+  first_review = reviews.find { |review| review["state"] == "APPROVED" || review["state"] == "CHANGES_REQUESTED" }
+  first_review.nil? ? pr_info["created_at"] : first_review["submitted_at"]
 end
 
 def collect_opened_data(github_client, repo, teams)
@@ -98,8 +117,29 @@ def collect_duration_data(github_client, repo, run_id)
   collect_metrics(run, jobs, tags)
 end
 
+def collect_merge_queue_data
+  current_time = Time.now.utc
+  tags = CUSTOM_TAGS + ["event:merge_queue_add_time"]
+  [
+    ["merge_queue_add_time", current_time.to_i, tags]
+  ]
+end
+
 def parse_array_input(arg)
   arg.nil? || arg == '' ? [] : JSON.parse(arg.strip)
+end
+
+def first_merge_queue_event?(github_client, repo, pr_number)
+  pr_info = github_client.pull_request(repo, pr_number)
+  pr_body = pr_info.body
+
+  if pr_body.include?("#{MERGE_QUEUE_ADD_KEY}:")
+    false
+  else
+    new_body = "#{pr_body}\n\n#{MERGE_QUEUE_ADD_KEY}: #{Time.now.utc.iso8601}"
+    github_client.update_pull_request(repo, pr_number, body: new_body)
+    true
+  end
 end
 
 TAGGED_BRANCHES = parse_array_input(ARGV[4])
@@ -123,6 +163,14 @@ when "opened"
   metrics = collect_opened_data(github_client, repo, teams)
 when "job_metrics"
   metrics = collect_duration_data(github_client, repo, run_id)
+when "checks_requested"
+  pr_number = ENV['PR_NUMBER']
+  if first_merge_queue_event?(github_client, repo, pr_number)
+    metrics = collect_merge_queue_data
+  else
+    puts "PR added to Merge queue event already reported for PR #{pr_number}"
+  end
 end
 
 submit_metrics(metrics, datadog_client, metric_prefix) if metrics
+
