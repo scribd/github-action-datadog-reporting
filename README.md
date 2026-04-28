@@ -167,12 +167,34 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Optional step that allows tagging time to merge with a team
-      - uses: tspascoal/get-user-teams-membership@v1
+      - uses: actions/github-script@v9
         id: actorTeams
         if: ${{ !endsWith(github.event.pull_request.user.login, '[bot]') }}
         with:
-          username: ${{ github.event.pull_request.user.login }}
-          GITHUB_TOKEN: ${{ secrets.OCTOKIT_TOKEN }}
+          github-token: ${{ secrets.OCTOKIT_TOKEN }}
+          script: |
+            const username = context.payload.pull_request.user.login;
+            const org = context.repo.owner;
+            const query = `
+              query($cursor: String, $org: String!, $userLogins: [String!], $username: String!) {
+                user(login: $username) { id }
+                organization(login: $org) {
+                  teams(first: 100, userLogins: $userLogins, after: $cursor) {
+                    nodes { name }
+                    pageInfo { hasNextPage endCursor }
+                  }
+                }
+              }
+            `;
+            let teams = [];
+            let cursor = null;
+            do {
+              const data = await github.graphql(query, { cursor, org, userLogins: [username], username });
+              teams = teams.concat(data.organization.teams.nodes.map(t => t.name));
+              if (!data.organization.teams.pageInfo.hasNextPage) break;
+              cursor = data.organization.teams.pageInfo.endCursor;
+            } while (true);
+            core.setOutput('teams', JSON.stringify(teams));
 
       - id: datadog-metrics
         uses: scribd/github-action-datadog-reporting@v2
