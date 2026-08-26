@@ -13,7 +13,7 @@ def collect_job_metrics(job, tags)
   return nil unless job["status"] == "completed"
   [
     "job_duration",
-    job["completed_at"] - job["started_at"],
+    [job["completed_at"] - job["started_at"], 0].max,
     tags + ["status:#{job["conclusion"]}", "name:#{job["name"]}"]
   ]
 end
@@ -31,7 +31,7 @@ def collect_workflow_metrics(workflow_run, jobs, tags)
   is_retry = workflow_run["run_attempt"] > 1
   [[
     "workflow_duration",
-    finish - start,
+    [finish - start, 0].max,
     tags + ["status:#{status}","retry:#{is_retry}"]
   ]]
 end
